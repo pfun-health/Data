@@ -9,6 +9,19 @@
 			"*.copilotmd": "vscode.markdown.preview.editor",
 			"file:/**/*.csv": "jupyter-data-wrangler",
 			"file:/**/*.parquet": "jupyter-data-wrangler"
-		}
+		},
+		"sqltools.connections": [
+			{
+				"ssh": "Disabled",
+				"previewLimit": 50,
+				"server": "192.168.7.221",
+				"port": 5432,
+				"askForPassword": true,
+				"driver": "PostgreSQL",
+				"name": "postgres.local.pfun.run",
+				"database": "pfun",
+				"username": "postgres"
+			}
+		]
 	}
 }
