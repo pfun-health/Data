@@ -1,3 +1,5 @@
 # pfun-health/Data
 
-Data utilities for PFun Digital Health
+    NOTE: under very active development!
+
+Data utilities for PFun Digital Health.
