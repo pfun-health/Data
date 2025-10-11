@@ -15,7 +15,7 @@ dependencies = [
     "pfun-path-helper>=0.1.4",
     "psycopg2-binary",
     "pydantic==2.4.2",
-    "pydantic-settings>=2.11.0",
+    "pydantic-settings",
     "scipy>=1.16.2",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.43",
