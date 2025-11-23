@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+import argparse
 from pathlib import Path
 import concurrent.futures
 import zipfile
@@ -77,3 +78,36 @@ class Csv2ParquetPipeline:
 
     def convert_csvs_to_parquet(self):
         return convertCsvToParquet(self.csv_path, self.parquet_path)
+    
+
+def unzipCsv2Parquet(zip_path, csv_path, parquet_path):
+    pipeline = Csv2ParquetPipeline(
+        zip_path,
+        csv_path,
+        parquet_path
+    )
+    pipeline()
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Extract CSVs from a ZIP file and convert them to Parquet format.'
+    )
+    parser.add_argument('--zip-path', required=True, help='Path to the input ZIP file.')
+    parser.add_argument(
+        '--csv-path', required=True, help='Path to the directory to extract CSV files into.'
+    )
+    parser.add_argument(
+        '--parquet-path', required=True, help='Path to the directory to save Parquet files.'
+    )
+
+    parsed_args = parser.parse_args()
+    unzipCsv2Parquet(
+        parsed_args.zip_path,
+        parsed_args.csv_path,
+        parsed_args.parquet_path
+    )
+    
+
+if __name__ == '__main__':
+    main()
