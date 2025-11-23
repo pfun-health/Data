@@ -13,7 +13,9 @@ dependencies = [
     "numpy>=1.21",
     "pandas>=2.3.2",
     "pfun-path-helper>=0.1.4",
-    "psycopg2>=2.9.10",
+    "psycopg2-binary",
+    "pydantic==2.4.2",
+    "pydantic-settings",
     "scipy>=1.16.2",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.43",
@@ -25,7 +27,7 @@ requires = ["hatchling", "wheel", "setuptools"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/data"]
+packages = ["src/pfun_data"]
 
 [dependency-groups]
 dev = [
