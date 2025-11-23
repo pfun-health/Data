@@ -1,4 +1,6 @@
 /generated_clients/*/*
+_raw_data/d1namo-ecg-glucose-data/
+_raw_data/d1namo-ecg-glucose-data.zip
 
 # Specifies intentionally untracked files to ignore when using Git
 # http://git-scm.com/docs/gitignore
