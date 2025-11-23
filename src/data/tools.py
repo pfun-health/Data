@@ -1,3 +1,4 @@
+import sys
 import json
 import pandas as pd
 import zipfile
@@ -7,12 +8,15 @@ import argparse
 from typing import Optional
 import logging
 import logging.config
-from datetime import datetime
+import datetime
 
 # Setup log file path using UTC date
 log_dir = Path("logs")
 log_dir.mkdir(exist_ok=True)
-log_filename = log_dir / f"{datetime.utcnow().strftime('%Y-%m-%d')}-UTC.log"
+tstamp = datetime.datetime.now(
+    datetime.timezone.utc
+).strftime('%Y-%m-%d-%H_%M')
+log_filename = log_dir / f"{tstamp}.log"
 
 logging.config.dictConfig(
     {
@@ -47,16 +51,20 @@ logging.config.dictConfig(
 
 
 def _extract_single_zipitem(zip_path, info_item, output_path, skip_existing: bool = True):
-    full_output_filepath = Path(output_path).joinpath(info_item.filename)
-    # skip if flag is True AND file exists AND filesize is the same as expected uncompressed.
-    if all([full_output_filepath.exists(),
-            skip_existing is True,
-            full_output_filepath.stat().st_size == info_item.file_size]):
-        logging.info("* Skipping existing file '%s' !", full_output_filepath)
-        return True
-    logging.info("Extracting '%s'...", info_item.filename)
-    with zipfile.ZipFile(zip_path, "r") as zipref:
-        zipref.extract(info_item, path=output_path)
+    try:
+        full_output_filepath = Path(output_path).joinpath(info_item.filename)
+        # skip if flag is True AND file exists AND filesize is the same as expected uncompressed.
+        if all([full_output_filepath.exists(),
+                skip_existing is True,
+                full_output_filepath.stat().st_size == info_item.file_size]):
+            logging.info("* Skipping existing file '%s' !", full_output_filepath)
+            return True
+        logging.info("Extracting '%s'...", info_item.filename)
+        with zipfile.ZipFile(zip_path, "r") as zipref:
+            zipref.extract(info_item, path=output_path)
+    except KeyboardInterrupt:
+        logging.warning("Extraction interrupted by user.")
+        sys.exit(0)
 
 
 def extractFromZip(zip_path: Path | str, output_path: Path | str, skip_existing: bool = True):
@@ -64,7 +72,7 @@ def extractFromZip(zip_path: Path | str, output_path: Path | str, skip_existing:
     infolist = []
     with zipfile.ZipFile(zip_path, "r") as zipref:
         infolist = [zitem for zitem in zipref.infolist()]
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
         futures = [
             executor.submit(_extract_single_zipitem, zip_path,
                             info_item, output_path, skip_existing)
@@ -81,13 +89,17 @@ def _convert_single_csv_to_parquet(
     csv_file: Path, parquet_path: Path, skip_existing: bool = True
 ) -> None:
     """Helper function to convert a single CSV file to a Parquet file."""
-    parquet_file = parquet_path.joinpath(csv_file.parent.name, csv_file.stem + ".parquet")
-    if all([skip_existing is True, parquet_file.exists()]):
-        logging.warning("* Skipping existing file: '%s' !", str(parquet_file))
-        return
-    logging.info("Creating new database file: '%s'...", str(parquet_file))
-    df = pd.read_csv(csv_file)
-    df.to_parquet(parquet_file)
+    try:
+        parquet_file = parquet_path.joinpath(csv_file.parent.name, csv_file.stem + ".parquet")
+        if all([skip_existing is True, parquet_file.exists()]):
+            logging.warning("* Skipping existing file: '%s' !", str(parquet_file))
+            return
+        logging.info("Creating new database file: '%s'...", str(parquet_file))
+        df = pd.read_csv(csv_file)
+        df.to_parquet(parquet_file)
+    except KeyboardInterrupt:
+        logging.warning("Conversion interrupted by user.")
+        sys.exit(0)
 
 
 def convertCsvToParquet(
@@ -117,7 +129,7 @@ def convertCsvToParquet(
     ]
 
     # Use a process pool to convert files in parallel
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
         futures = [
             executor.submit(
                 _convert_single_csv_to_parquet, csv_file, parquet_path,
